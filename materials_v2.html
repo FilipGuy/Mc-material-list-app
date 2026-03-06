@@ -486,6 +486,28 @@ input::placeholder { color: var(--text3); }
 
 .new-proj-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(10,122,255,0.06); }
 
+.proj-tab-wrap {
+  display: flex; align-items: center; gap: 2px;
+  position: relative;
+}
+
+.proj-del-btn {
+  width: 20px; height: 20px;
+  border-radius: 6px; border: none;
+  background: rgba(255,58,48,0.08);
+  color: var(--danger);
+  font-size: 10px; font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+  font-family: 'DM Sans', sans-serif;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.proj-tab-wrap:hover .proj-del-btn { opacity: 1; }
+.proj-del-btn:hover { background: rgba(255,58,48,0.2); color: var(--danger); transform: scale(1.1); opacity: 1; }
+
 /* TOOLBAR */
 .toolbar {
   display: flex; align-items: center; gap: 8px;
@@ -671,7 +693,35 @@ input::placeholder { color: var(--text3); }
   border-bottom: 1px solid var(--border2);
 }
 
-.add-form-label { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
+.add-form-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+  color: var(--text3); margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.import-btn {
+  font-size: 11px; font-weight: 600; letter-spacing: 0;
+  text-transform: none; color: var(--accent);
+  background: rgba(10,122,255,0.1);
+  border: 1px solid rgba(10,122,255,0.2);
+  border-radius: 8px; padding: 4px 10px;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all var(--transition);
+  display: flex; align-items: center; gap: 5px;
+}
+.import-btn:hover { background: rgba(10,122,255,0.18); transform: translateY(-1px); }
+.import-btn:active { transform: scale(0.97); }
+
+.import-preview-item {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 9px; padding: 8px 12px;
+  font-size: 12px;
+}
+.import-preview-item .ip-name { flex: 1; font-weight: 500; color: var(--text); }
+.import-preview-item .ip-qty { font-family: 'DM Mono', monospace; color: var(--text3); font-size: 11px; background: var(--surface2); padding: 1px 7px; border-radius: 5px; }
+.import-preview-item .ip-tag { font-size: 10px; font-weight: 600; border-radius: 5px; padding: 1px 7px; }
+.import-preview-item .ip-skip { font-size: 10px; color: var(--text3); font-style: italic; }
 
 .add-row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
 
@@ -709,10 +759,28 @@ input::placeholder { color: var(--text3); }
   background: var(--surface2);
   color: var(--text2);
   user-select: none;
+  display: inline-flex; align-items: center; gap: 5px;
 }
 
 .tag-chip.selected, .tag-chip:hover { opacity: 1; }
 .tag-chip.selected { transform: scale(1.04); }
+
+.tag-del-btn {
+  width: 13px; height: 13px;
+  border-radius: 3px; border: none;
+  background: transparent;
+  color: currentColor;
+  font-size: 9px; font-weight: 700;
+  cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0.4;
+  transition: all var(--transition);
+  font-family: 'DM Sans', sans-serif;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.tag-chip:hover .tag-del-btn { opacity: 0.8; }
+.tag-del-btn:hover { opacity: 1 !important; transform: scale(1.2); }
 
 /* ITEMS */
 .items-section { padding: 16px 26px 26px; }
@@ -1372,7 +1440,7 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
     <!-- ADD FORM -->
     <div class="add-form">
-      <div class="add-form-label">Add Item</div>
+      <div class="add-form-label">Add Item <button class="import-btn" onclick="openImportModal()" title="Import from Litematica">📂 Import Litematica</button></div>
       <div class="add-row">
         <div class="add-field"><input type="text" id="iName" placeholder="Item name" onkeydown="ek(event)"></div>
         <div class="add-field xs"><input type="text" id="iAmt" placeholder="Qty" onkeydown="ek(event)"></div>
@@ -1411,6 +1479,18 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
   </div>
 </div>
 
+<!-- DELETE PROJECT CONFIRM MODAL -->
+<div class="modal-backdrop" id="delProjModal">
+  <div class="modal-box">
+    <h3 style="color:var(--danger);">🗑 Delete Project</h3>
+    <p id="delProjMsg" style="font-size:14px;color:var(--text2);margin:10px 0 20px;line-height:1.6;"></p>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeDelModal()">Cancel</button>
+      <button class="modal-confirm" style="background:var(--danger);box-shadow:0 4px 14px rgba(255,58,48,0.3);" onclick="confirmDeleteProject()">Delete</button>
+    </div>
+  </div>
+</div>
+
 <!-- SHULKER CALCULATOR MODAL -->
 <div class="shulker-modal-backdrop" id="shulkerModal">
   <div class="shulker-modal">
@@ -1443,6 +1523,36 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
     <div class="sh-footer">
       <button class="sh-close-btn" onclick="closeShulker()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="bg-modal-backdrop" id="importModal">
+  <div class="bg-modal" style="max-width:480px;">
+    <h3>Import Litematica <button class="bg-modal-close" onclick="closeImportModal()">✕</button></h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Paste your Litematica material list text below, or upload the .txt file directly. Items already in the list will be skipped.</p>
+
+    <div class="upload-zone" style="margin-bottom:12px;" id="importDropZone">
+      <input type="file" id="importFileInput" accept=".txt,text/plain" onchange="handleImportFile(event)">
+      <div class="upload-icon">📄</div>
+      <p>Click or drop .txt file here</p>
+      <small>From Litematica material list export</small>
+    </div>
+
+    <div class="bg-section-title">Or paste text</div>
+    <textarea id="importTextarea" placeholder="Paste the Litematica table here..." style="width:100%;height:160px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:12px;font-size:12px;font-family:'DM Mono',monospace;color:var(--text);resize:vertical;outline:none;line-height:1.6;"></textarea>
+
+    <div id="importPreview" style="display:none;margin-top:12px;">
+      <div class="bg-section-title">Found items</div>
+      <div id="importPreviewList" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding-right:2px;"></div>
+    </div>
+
+    <div id="importError" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(255,58,48,0.1);border:1px solid rgba(255,58,48,0.2);border-radius:10px;font-size:12px;color:var(--danger);"></div>
+
+    <div class="bg-modal-footer" style="margin-top:16px;">
+      <button class="bg-remove-btn" onclick="closeImportModal()">Cancel</button>
+      <button class="bg-done-btn" id="importConfirmBtn" onclick="confirmImport()" style="display:none;">Add All Items</button>
     </div>
   </div>
 </div>
@@ -1604,17 +1714,64 @@ function renderProjects() {
   bar.innerHTML='';
   ps.forEach(p => {
     const items=getItems(p.id);
+    const wrap=document.createElement('div');
+    wrap.className='proj-tab-wrap';
+
     const btn=document.createElement('button');
     btn.className='proj-tab'+(p.id===CP?' active':'');
     btn.innerHTML=`${p.name} <span class="tab-count">${items.length}</span>`;
     btn.onclick=()=>{ CP=p.id; renderProjects(); renderItems(); renderTags(); };
-    bar.appendChild(btn);
+
+    const del=document.createElement('button');
+    del.className='proj-del-btn';
+    del.title='Delete project';
+    del.textContent='✕';
+    del.onclick=(e)=>{ e.stopPropagation(); deleteProject(p.id, p.name); };
+
+    wrap.appendChild(btn);
+    wrap.appendChild(del);
+    bar.appendChild(wrap);
   });
   const add=document.createElement('button');
   add.className='new-proj-btn'; add.textContent='+'; add.title='New project';
   add.onclick=openNewProject;
   bar.appendChild(add);
 }
+
+let pendingDeleteId = null;
+let pendingDeleteName = '';
+
+function deleteProject(id, name) {
+  const ps = getProjects();
+  if (ps.length === 1) { toast('Cannot delete the last project'); return; }
+  pendingDeleteId = id;
+  pendingDeleteName = name;
+  document.getElementById('delProjMsg').textContent = `Delete "${name}" and all its items? This cannot be undone.`;
+  document.getElementById('delProjModal').classList.add('open');
+}
+
+function closeDelModal() {
+  document.getElementById('delProjModal').classList.remove('open');
+  pendingDeleteId = null;
+  pendingDeleteName = '';
+}
+
+function confirmDeleteProject() {
+  if (!pendingDeleteId) return;
+  const ps = getProjects();
+  const newPs = ps.filter(p => p.id !== pendingDeleteId);
+  saveProjects(newPs);
+  LS.rm(uKey('items_' + pendingDeleteId));
+  LS.rm(uKey('tags_' + pendingDeleteId));
+  if (CP === pendingDeleteId) CP = newPs[0].id;
+  closeDelModal();
+  renderProjects(); renderItems(); renderTags();
+  toast(`Deleted "${pendingDeleteName}"`);
+}
+
+document.getElementById('delProjModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('delProjModal')) closeDelModal();
+});
 
 function openNewProject() {
   document.getElementById('projModal').classList.add('open');
@@ -1654,10 +1811,33 @@ function renderTagChips() {
   tags.forEach(t => {
     const chip=document.createElement('span');
     chip.className=`tag-chip tc${t.color}${selectedTag===t.name?' selected':''}`;
-    chip.textContent=t.name;
-    chip.onclick=()=>{ selectedTag=selectedTag===t.name?null:t.name; renderTagChips(); renderItems(); };
+
+    const label=document.createElement('span');
+    label.textContent=t.name;
+    label.onclick=()=>{ selectedTag=selectedTag===t.name?null:t.name; renderTagChips(); renderItems(); };
+
+    const delBtn=document.createElement('button');
+    delBtn.className='tag-del-btn';
+    delBtn.textContent='✕';
+    delBtn.title='Delete tag';
+    delBtn.onclick=(e)=>{ e.stopPropagation(); deleteTag(t.name); };
+
+    chip.appendChild(label);
+    chip.appendChild(delBtn);
     row.appendChild(chip);
   });
+}
+
+function deleteTag(name) {
+  // remove tag from tags list
+  const tags = getTags(CP).filter(t => t.name !== name);
+  saveTags(CP, tags);
+  // remove tag from all items that had it
+  const items = getItems(CP).map(i => i.tag === name ? {...i, tag:''} : i);
+  saveItems(CP, items);
+  if (selectedTag === name) selectedTag = null;
+  renderTagChips(); renderItems();
+  toast(`Deleted tag "${name}"`);
 }
 
 function renderTags() { selectedTag=null; renderTagChips(); }
@@ -1732,6 +1912,160 @@ function addItem() {
 }
 
 function ek(e) { if(e.key==='Enter') addItem(); }
+
+/* ===== LITEMATICA IMPORT ===== */
+let importParsed = [];
+let importSchematicName = '';
+
+function parseLitematica(text) {
+  const results = [];
+  const lines = text.split('\n');
+
+  // Extract schematic name from header line like:
+  // | Material List for schematic 'Wheat Tower v006 (10 layers)' (1 of 1 regions) |
+  importSchematicName = '';
+  for (const line of lines) {
+    const nameMatch = line.match(/schematic\s+'([^']+)'/i);
+    if (nameMatch) { importSchematicName = nameMatch[1].trim(); break; }
+  }
+
+  for (const line of lines) {
+    const match = line.match(/^\s*\|\s*([^|]+?)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|/);
+    if (!match) continue;
+    const name = match[1].trim();
+    const total = parseInt(match[2]);
+    if (name.toLowerCase() === 'item' || name.startsWith('-') || name.startsWith('+')) continue;
+    if (!name || isNaN(total) || total === 0) continue;
+    results.push({ name, amount: String(total) });
+  }
+  return results;
+}
+
+function openImportModal() {
+  importParsed = [];
+  document.getElementById('importTextarea').value = '';
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('importPreviewList').innerHTML = '';
+  document.getElementById('importError').style.display = 'none';
+  document.getElementById('importConfirmBtn').style.display = 'none';
+  document.getElementById('importFileInput').value = '';
+  document.getElementById('importModal').classList.add('open');
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').classList.remove('open');
+}
+
+document.getElementById('importModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('importModal')) closeImportModal();
+});
+
+function handleImportFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('importTextarea').value = ev.target.result;
+    processImportText(ev.target.result);
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById('importTextarea').addEventListener('input', function() {
+  processImportText(this.value);
+});
+
+function processImportText(text) {
+  const errEl = document.getElementById('importError');
+  const previewEl = document.getElementById('importPreview');
+  const listEl = document.getElementById('importPreviewList');
+  const confirmBtn = document.getElementById('importConfirmBtn');
+
+  errEl.style.display = 'none';
+  if (!text.trim()) { previewEl.style.display = 'none'; confirmBtn.style.display = 'none'; return; }
+
+  const parsed = parseLitematica(text);
+
+  if (parsed.length === 0) {
+    errEl.textContent = "Could not find any items. Make sure you pasted the full Litematica material list table.";
+    errEl.style.display = 'block';
+    previewEl.style.display = 'none';
+    confirmBtn.style.display = 'none';
+    return;
+  }
+
+  importParsed = parsed;
+  const existingItems = getItems(CP).map(i => i.name.toLowerCase());
+
+  listEl.innerHTML = '';
+
+  // show detected schematic name at top of preview
+  if (importSchematicName) {
+    const nameTag = document.createElement('div');
+    nameTag.style.cssText = 'font-size:11px;font-weight:700;color:var(--accent);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px;';
+    nameTag.innerHTML = `<span>📐</span> New project: ${esc(importSchematicName)}`;
+    listEl.appendChild(nameTag);
+  }
+
+  parsed.forEach(item => {
+    const alreadyExists = existingItems.includes(item.name.toLowerCase());
+    const tag = autoTag(item.name);
+    const div = document.createElement('div');
+    div.className = 'import-preview-item';
+    div.innerHTML = `
+      <span class="ip-name">${esc(item.name)}</span>
+      ${tag ? `<span class="ip-tag tc${Object.keys(MC_TAGS).indexOf(tag) % 6}">${esc(tag)}</span>` : ''}
+      <span class="ip-qty">×${item.amount}</span>
+      ${alreadyExists ? '<span class="ip-skip">already in list</span>' : ''}
+    `;
+    if (alreadyExists) div.style.opacity = '0.45';
+    listEl.appendChild(div);
+  });
+
+  previewEl.style.display = 'block';
+  const newCount = parsed.filter(i => !existingItems.includes(i.name.toLowerCase())).length;
+  confirmBtn.textContent = `Add ${newCount} Item${newCount !== 1 ? 's' : ''}`;
+  confirmBtn.style.display = newCount > 0 ? 'block' : 'none';
+  if (newCount === 0) {
+    errEl.textContent = 'All items from this list are already in your project.';
+    errEl.style.display = 'block';
+  }
+}
+
+function confirmImport() {
+  if (!importParsed.length) return;
+
+  // create a new project named after the schematic
+  const projName = importSchematicName || 'Litematica Import';
+  const ps = getProjects();
+  const newId = 'proj_' + Date.now();
+  ps.push({ id: newId, name: projName, color: ps.length % 6 });
+  saveProjects(ps);
+  CP = newId;
+
+  const items = [];
+  let added = 0;
+
+  importParsed.forEach(item => {
+    const tagName = autoTag(item.name);
+    if (tagName) ensureTag(tagName);
+    items.push({
+      id: Date.now() + added,
+      name: item.name,
+      amount: item.amount,
+      priority: 'none',
+      done: false,
+      tag: tagName,
+      order: added
+    });
+    added++;
+  });
+
+  saveItems(CP, items);
+  closeImportModal();
+  renderProjects(); renderItems(); renderTagChips();
+  toast(`Created "${projName}" with ${added} item${added !== 1 ? 's' : ''}`);
+}
 
 function setFilter(f) {
   activeFilter=f;
